@@ -1,0 +1,92 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+# Local editor and deployment artifacts
+.content-backups/
+.publish-build/
+.publish-state/
+
+.diary-data/
+.analytics-data/
+.analytics-test-data/
+reference-source/
+reference.zip
+test-results/
+.playwright/
+
+.next-e2e/
+.diary-test-data/
+
+.next-production-check/
+
+.tools/
+.studio-launcher.log
+
+# This repository shares software, never the owner's local content.
+/src/content/site.json
+/src/content/public-quotes.json
+/src/content/.*.tmp
+/publish-config.json
+/photos/
+/passage/
+/public/images/*
+!/public/images/examples/
+!/public/images/examples/**
+/.local-tests/
+/scripts/organize-photo-places.mjs
+/scripts/locate-photo-places.mjs
+/.source-release/
+/.codex/
+/.agents/
+/.vscode/
+*.log
+*.sqlite*
+*.db
+
+/scripts/import-photo-folders.mjs
+
+# Owner-only extensions; shared template initializes empty extension files.
+/src/content/local-extensions.tsx
+/scripts/local-export.mjs
+/src/components/analytics/
+/src/components/personal/AnalyticsPanel.tsx
+/src/components/personal/AnalyticsPanel.module.scss
+/src/app/api/studio/analytics/
+/src/lib/analytics-config.mjs
+/src/lib/analytics-store.mjs
+/src/content/analytics-public.json

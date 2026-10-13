@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "site": {
+    "name": "拾光",
+    "title": "日常留存 · 我的个人主页",
+    "description": "用文字、每日一句与照片，记录生活。",
+    "url": "",
+    "tagline": "文字 · 照片 · 走过的日子",
+    "email": "",
+    "github": "",
+    "showSampleNotes": true
+  },
+  "home": {
+    "badge": "A PERSONAL COLLECTION OF DAYS",
+    "headline": "把日子写下来，",
+    "subheadline": "把片刻留给以后。",
+    "intro": "这里是一个示例主页。你可以在本机内容工作室里替换这些文字，开始记录自己的生活。",
+    "cover": "/images/examples/cover.webp",
+    "coverAlt": "程序生成的山丘与落日示例插画",
+    "coverTitle": "为回忆留一页",
+    "coverSubtitle": "重新绘制的示例封面",
+    "coverDescription": "这张抽象插画由程序生成，不包含维护者的照片。"
+  },
+  "about": {
+    "title": "关于我",
+    "greeting": "你好，欢迎来坐坐。",
+    "body": "在这里写下你想向来访者介绍的自己。",
+    "interests": "阅读、散步、摄影"
+  },
+  "pages": {
+    "blogTitle": "写在日子里",
+    "blogIntro": "一些想法，一些经过。",
+    "galleryTitle": "曾经看见，",
+    "gallerySubtitle": "仍然记得。",
+    "galleryIntro": "一些值得留下的片刻。",
+    "galleryCredit": "",
+    "galleryCreditUrl": "",
+    "workTitle": "做过的小事",
+    "workIntro": "把想法慢慢做出来。"
+  },
+  "journal": [
+    {
+      "slug": "hello-memories",
+      "title": "从第一篇记录开始",
+      "date": "2026-01-01",
+      "category": "随笔",
+      "summary": "这是一篇为公开模板重新编写的示例文章。",
+      "cover": "",
+      "sample": true,
+      "sections": [
+        {
+          "title": "从这里开始",
+          "text": "这是一段重新编写的示例文字，可以在本机工作室中替换。"
+        }
+      ],
+      "markdown": "## 你好\n\n这是一篇示例文章，可以放心删除。\n\n在内容工作室里，你可以输入 **Markdown**，查看实时预览，也可以导入已有的 `.md` 文件。\n\n- 记录今天的一件小事\n- 为某一天写一句话\n- 把喜欢的照片整理成相册\n\n独立公式示例：\n\n$$\na^2+b^2=c^2\n$$\n"
+    }
+  ],
+  "projects": [],
+  "photographs": [],
+  "albums": [],
+  "places": []
+}

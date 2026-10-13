@@ -1,0 +1,71 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import { validateContent } from '../src/lib/content-schema.ts';
+import { publicContent, publicImages } from '../src/lib/public-content.mjs';
+import { placeMemories, photoRecords, seasonalMemories, daysBetween, placeMapUrl } from '../src/lib/photo-memories.mjs';
+const base=JSON.parse(await fs.readFile(new URL('../src/content/site.example.json',import.meta.url),'utf8'));
+const place=(id,name,aliases=[])=>({id,name,city:'示例城市',aliases,latitude:null,longitude:null});
+const photo=(id,date,location,placeId='')=>({id,src:`/images/${id}.webp`,date,location,placeId,title:id,subtitle:'',orientation:'horizontal',private:false,albumId:''});
+const fixture=()=>({...base,albums:[],places:[place('qixia','示例公园',['示例城市示例公园']),place('other','另一个地点')],photographs:[photo('a','2025-11-22','示例公园'),photo('b','2025-11-29','示例城市示例公园'),photo('c','2025-11-29','示例公园'),photo('d','2026-11-20','示例公园'),photo('e','','')]});
+
+test('locations connect records across albums and aliases, with separate visits a week apart',()=>{
+  const c=fixture();const all=placeMemories(c);
+  assert.equal(all.find(p=>p.id==='qixia').visits.length,3);
+  assert.equal(all.find(p=>p.id==='qixia').photoCount,4);
+  assert.equal(placeMemories(c,'2025')[0].visits.length,2);
+  assert.equal(placeMemories(c,'2025')[0].visits[1].photos.length,2);
+  assert.equal(placeMemories(c,'未标日期')[0].id,'unlocated');
+  assert.equal(daysBetween('2025-11-22','2025-11-29'),7);
+  c.photographs[0].placeId='other';assert.equal(photoRecords(c)[0].place.id,'other');
+  c.photographs[0].placeId='';c.photographs[0].location='示例公园附近另一处';assert.notEqual(photoRecords(c)[0].place.id,'qixia');
+  c.places.push({...place('ambiguous','示例公园'),city:'另一个城市'});c.photographs[0].location='示例公园';
+  assert.ok(photoRecords(c)[0].place.id.startsWith('location:'));
+});
+test('consecutive travel days are one visit with daily browsing, including missing photos and year boundaries',()=>{
+  const c=fixture();
+  c.photographs=['2026-08-23','2026-08-24','2026-08-25','2026-09-10'].map((date,i)=>photo(`p${i}`,date,'示例公园'));
+  let group=placeMemories(c)[0];
+  assert.equal(group.visits.length,2);
+  assert.equal(group.days.length,4);
+  assert.equal(group.visits[0].endDate,'2026-08-25');
+  assert.equal(group.visits[0].photos.length,3);
+  c.photographs[1].private=true;
+  assert.equal(placeMemories(publicContent(c))[0].visits.length,2);
+  assert.equal(placeMemories(publicContent(c))[0].visits[0].photos.length,2);
+  c.photographs=['2025-12-30','2026-01-02','2026-01-09'].map((date,i)=>photo(`p${i}`,date,'示例公园'));
+  group=placeMemories(c)[0];assert.equal(group.visits.length,2);
+  assert.equal(group.visits[0].endDate,'2026-01-02');
+  assert.equal(placeMemories(c,'2026')[0].visits[0].date,'2026-01-02');
+  assert.equal(placeMemories(c,'2026')[0].visits[0].photos.length,1);
+});
+test('private-only places and coordinates disappear, and hidden dates cannot create repeat visits',()=>{
+  const c=fixture();c.places.push({...place('secret','私密坐标'),latitude:32.1234567,longitude:118.1234567});
+  c.photographs.push({...photo('secret-photo','2024-11-10','私密坐标','secret'),private:true});
+  c.photographs[1].private=true;c.photographs[2].private=true;c.photographs[3].private=true;
+  const result=publicContent(c);
+  assert.deepEqual(result.places.map(p=>p.id),['qixia']);
+  assert.equal(placeMemories(result).find(p=>p.id==='qixia').visits.length,1);
+  assert.doesNotMatch(JSON.stringify(result),/私密坐标|secret|32\.1234567|118\.1234567|示例城市示例公园/);
+  assert.deepEqual(result,publicContent(result));
+  assert.ok(!publicImages(c).includes('/images/secret-photo.webp'));
+  assert.equal(c.photographs.length,6);
+});
+test('season memories use prior years, same month first and winter across year boundary',()=>{
+  const c=fixture();
+  assert.equal(seasonalMemories(c,'2026-11-01').label,'往年的这个月');
+  assert.ok(seasonalMemories(c,'2026-11-01').records.every(r=>r.date.startsWith('2025')));
+  assert.equal(seasonalMemories(c,'2025-11-01').records.length,0);
+  c.photographs=[photo('winter','2024-12-15','示例公园')];
+  assert.equal(seasonalMemories(c,'2026-01-12').records.length,1);
+  assert.equal(seasonalMemories(c,'2026-07-12').records.length,0);
+});
+test('map coordinates are optional, validated in pairs and never guessed',()=>{
+  const c=fixture();assert.equal(placeMapUrl(c.places[0]),'');
+  c.places[0].latitude=32;assert.throws(()=>validateContent(c),/一起填写/);
+  c.places[0].longitude=118;assert.ok(placeMapUrl(c.places[0]).startsWith('https://www.openstreetmap.org/export/embed.html?'));
+  assert.equal(new URL(placeMapUrl(c.places[0])).searchParams.get('marker'),'32,118');
+  assert.equal(validateContent(c).places[0].longitude,118);
+  c.places[0].latitude=91;assert.throws(()=>validateContent(c),/纬度/);
+  assert.equal(placeMapUrl(c.places[0]),'');
+});
