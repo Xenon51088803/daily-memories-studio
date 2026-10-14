@@ -4,6 +4,7 @@ import os from 'node:os';
 import { api, ghPath, ghConfigDirectory, explainGithubError, setGithubReporter } from './github.mjs';
 import { publishDirectoryViaApi } from './github-api.mjs';
 import { exportSite, root } from './export-site.mjs';
+import { publishLogLine } from './publish-time.mjs';
 
 // Only the generated public directory is uploaded; no source or diary backup.
 const statePath = path.join(root, '.publish-state');
@@ -16,10 +17,18 @@ const attemptFile = path.join(statePath, checkOnly ? 'check.json' : 'attempt.jso
 const attemptState = {status:'running', startedAt:new Date().toISOString(), pid:process.pid, windowsUser:os.userInfo().username,
   node:process.execPath, ghPath, ghConfigDirectory:ghConfigDirectory || 'CLI default',
   environment:Object.fromEntries(['APPDATA','USERPROFILE','HOME','XDG_CONFIG_HOME','GH_CONFIG_DIR'].map(key=>[key,process.env[key] || null]))};
-async function report(message) {
-  console.log(message);
-  await fs.appendFile(logFile, `[${new Date().toISOString()}] ${message}\n`, 'utf8');
-  await fs.writeFile(attemptFile,JSON.stringify({...attemptState,message,updatedAt:new Date().toISOString()},null,2));
+let reporting = Promise.resolve();
+function report(message) {
+  const now = new Date();
+  const line = publishLogLine(message, now);
+  const state = {...attemptState,message,updatedAt:now.toISOString()};
+  console.log(line);
+  // Concurrent file uploads must not race while rewriting attempt.json.
+  reporting = reporting.then(async () => {
+    await fs.appendFile(logFile, `${line}\n`, 'utf8');
+    await fs.writeFile(attemptFile,JSON.stringify(state,null,2));
+  });
+  return reporting;
 }
 setGithubReporter(report);
 let locked = false;
@@ -27,6 +36,7 @@ try {
   await fs.writeFile(lock, String(process.pid), {flag:'wx'});
   locked = true;
   await report(checkOnly ? '开始检查发布连接（不会生成或上传网页）。' : '开始发布。生成、上传和等待 GitHub Pages 构建期间，请保持此窗口打开。');
+  await report('日志时间使用北京时间（UTC+08:00）；旧记录中结尾的 Z 表示 UTC，需要加 8 小时。');
   await report(`Windows 用户：${attemptState.windowsUser}；GitHub 配置：${attemptState.ghConfigDirectory}`);
   await report('正在连接 GitHub 并检查登录状态…');
   const login = await api('user');
@@ -69,7 +79,7 @@ try {
     await api('user/repos','POST',{name:repository,description:'日常留存 · Personal homepage and daily memories',private:false,auto_init:true});
   }
   await report('正在上传公开网页和图片…');
-  const commit = await publishDirectoryViaApi(repoName,'main',output,`Publish public homepage ${revision.slice(0,12)}`);
+  const commit = await publishDirectoryViaApi(repoName,'main',output,`Publish public homepage ${revision.slice(0,12)}`, {report});
   let pages;
   try {pages = await api(`repos/${repoName}/pages`);}
   catch(error) {
@@ -105,7 +115,7 @@ try {
   if (locked) {
     attemptState.status='error';
     await report(`未完成：${message}`).catch(()=>{});
-    if (message !== error.message) await fs.appendFile(logFile, `[${new Date().toISOString()}] 原始错误：${error.message}\n`, 'utf8').catch(()=>{});
+    if (message !== error.message) await fs.appendFile(logFile, `${publishLogLine(`原始错误：${error.message}`)}\n`, 'utf8').catch(()=>{});
   }
   console.error(`发布记录：${logFile}`);
   process.exitCode=1;

@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { createHash } from "node:crypto";
-import { spawn } from "node:child_process";
+import { run } from './process-runner.mjs';
+export { run } from './process-runner.mjs';
 import { fileURLToPath } from "node:url";
 import { openDiary, dayAt } from "../src/lib/diary-store.mjs";
 import { writePublicAssets } from './public-assets.mjs';
@@ -10,40 +11,6 @@ import { createExportSourceFilter } from './export-source-filter.mjs';
 import { prepareLocalExport } from './local-export.mjs';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-export async function run(command, args, options = {}) {
-  return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      cwd: options.cwd || root,
-      env: options.env || process.env,
-      stdio: ["pipe", "pipe", "pipe"],
-      windowsHide: true,
-    });
-    let stdout = "",
-      stderr = "";
-    child.stdout.on("data", (data) => {
-      stdout += data;
-      if (options.stream) process.stdout.write(data);
-    });
-    child.stderr.on("data", (data) => {
-      stderr += data;
-      if (options.stream) process.stderr.write(data);
-    });
-    let timedOut = false;
-    const timer = options.timeoutMs ? setTimeout(() => { timedOut = true; child.kill(); }, options.timeoutMs) : null;
-    child.on("error", error => { if (timer) clearTimeout(timer); reject(error); });
-    child.on("close", code => {
-      if (timer) clearTimeout(timer);
-      if (timedOut) {
-        const error = new Error(`请求超过 ${options.timeoutMs / 1000} 秒未完成。`);
-        error.code = 'PROCESS_TIMEOUT';
-        reject(error);
-      } else if (code === 0) resolve(stdout);
-      else reject(new Error(`${command} 执行失败：${(stderr || stdout).slice(-2500)}`));
-    });
-    child.stdin.on('error', error => { if (error.code !== 'EPIPE') reject(error); });
-    child.stdin.end(options.input || undefined);
-  });
-}
 export async function exportSite({ onStage = () => {}, expectedRevision, configOverride } = {}) {
   const configured = JSON.parse(await fs.readFile(path.join(root, "publish-config.json"), "utf8"));
   const config = configOverride || (configured.owner ? configured : { ...configured, basePath: '/tomorrow-letters', url: 'https://example.invalid/tomorrow-letters' });

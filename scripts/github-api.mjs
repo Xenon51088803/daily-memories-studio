@@ -13,11 +13,16 @@ const blobHash = (data) =>
   createHash("sha1").update(`blob ${data.length}\0`).update(data).digest("hex");
 async function pool(items, action) {
   let next = 0;
+  let failure;
   await Promise.all(
     Array.from({ length: Math.min(4, items.length) }, async () => {
-      while (next < items.length) await action(items[next++]);
+      while (!failure && next < items.length) {
+        try { await action(items[next++]); }
+        catch (error) { failure ||= error; }
+      }
     }),
   );
+  if (failure) throw failure;
 }
 async function remoteState(repo, branch) {
   try {
@@ -36,9 +41,11 @@ async function remoteState(repo, branch) {
     throw error;
   }
 }
-async function uploadTree(repo, entries, known) {
+async function uploadTree(repo, entries, known, report = async () => {}) {
   const unique = new Map(entries.filter((e) => !known.has(e.sha)).map((e) => [e.sha, e]));
   const inline = new Map();
+  await report(`文件检查完成：共 ${entries.length} 个文件，${unique.size} 个新内容需要上传，其余复用已有内容。`);
+  let uploaded = 0;
   await pool([...unique.values()], async (entry) => {
     const data = await entry.read();
     // Large text bundles also use blob uploads so a single entry cannot exceed
@@ -53,11 +60,13 @@ async function uploadTree(repo, entries, known) {
     });
     if (result.sha !== entry.sha) throw new Error("上传文件校验失败。");
     known.add(entry.sha);
+    await report(`已上传文件 ${++uploaded}：${entry.path}`);
   });
   // Keep each tree request small enough for GitHub's processing limit.
   const existing = entries
     .filter((e) => !inline.has(e.sha))
     .map(({ path, mode, sha }) => ({ path, mode, type: "blob", sha }));
+  await report('正在组装网页目录…');
   let tree = existing.length
     ? {sha:await createTreeBatch(repo,existing,null,api)}
     : null;
@@ -65,6 +74,7 @@ async function uploadTree(repo, entries, known) {
     size = 0;
   const flush = async () => {
     if (!batch.length) return;
+    await report(`正在上传文本批次：${batch.length} 个文件，约 ${Math.ceil(size/1024)} KB…`);
     tree = {sha:await createTreeBatch(repo,batch,tree?.sha,api)};
     batch = [];
     size = 0;
@@ -142,7 +152,7 @@ export async function pushSourceViaApi(repo, branch, cwd) {
   await git(["config", `branch.${branch}.merge`, `refs/heads/${branch}`], cwd);
   return head;
 }
-export async function publishDirectoryViaApi(repo, branch, directory, message) {
+export async function publishDirectoryViaApi(repo, branch, directory, message, {report = async () => {}} = {}) {
   const remote = await remoteState(repo, branch);
   const entries = [];
   async function walk(folder, prefix = "") {
@@ -157,7 +167,7 @@ export async function publishDirectoryViaApi(repo, branch, directory, message) {
     }
   }
   await walk(directory);
-  const tree = await uploadTree(repo, entries, remote.known);
+  const tree = await uploadTree(repo, entries, remote.known, report);
   if (tree === remote.tree) return remote.sha;
   const commit = await api(`repos/${repo}/git/commits`, "POST", {
     message,

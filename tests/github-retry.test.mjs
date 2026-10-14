@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { retryGithubConnection } from '../scripts/github-retry.mjs';
+import { retryGithubConnection, isReplaySafeGitObject } from '../scripts/github-retry.mjs';
 import { run } from '../scripts/export-site.mjs';
 import { explainGithubError } from '../scripts/github.mjs';
 
@@ -21,7 +21,35 @@ test('process timeouts retry reads but never repeat an ambiguous write', async (
 test('authentication and network errors give different recovery steps', () => {
   assert.match(explainGithubError(new Error('please run gh auth login')),/登录GitHub.cmd/);
   assert.match(explainGithubError(new Error('dial tcp: timeout')),/api.github.com/);
+  assert.match(explainGithubError(new Error('write EOF')),/api.github.com/);
   assert.equal(explainGithubError(new Error('Pages build error')),'Pages build error');
+});
+
+test('only immutable Git object creation permits retry after an interrupted write', async () => {
+  for (const endpoint of ['blobs','trees','commits','refs/heads/main']) {
+    const replaySafe=isReplaySafeGitObject(`repos/example/site/git/${endpoint}`,'POST');
+    assert.equal(replaySafe,['blobs','trees'].includes(endpoint));
+    let calls=0;
+    await assert.rejects(retryGithubConnection(async()=>{
+      calls++;throw new Error('write EOF');
+    },{replaySafe,wait:async()=>{},report:()=>{}}),/EOF/);
+    assert.equal(calls,replaySafe?3:1);
+  }
+  assert.equal(isReplaySafeGitObject('repos/example/site/git/trees','PATCH'),false);
+});
+
+test('reads recover from EOF and immutable retries still stop on permission or validation errors', async () => {
+  let calls=0;
+  assert.equal(await retryGithubConnection(async()=>{
+    if(++calls===1)throw new Error('unexpected EOF');return 'ok';
+  },{readOnly:true,wait:async()=>{},report:()=>{}}),'ok');
+  for(const message of ['HTTP 401','HTTP 403','HTTP 422']) {
+    calls=0;
+    await assert.rejects(retryGithubConnection(async()=>{
+      calls++;throw new Error(message);
+    },{replaySafe:true,wait:async()=>{},report:()=>{}}));
+    assert.equal(calls,1);
+  }
 });
 
 test('connection failures retry the same action and recover', async () => {
