@@ -17,9 +17,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="zh-CN"
       data-theme="light"
-      data-brand="moss"
-      data-neutral="sand"
-      data-accent="green"
+      data-brand="blue"
+      data-neutral="slate"
+      data-accent="orange"
       data-solid="contrast"
       data-solid-style="flat"
       data-border="rounded"

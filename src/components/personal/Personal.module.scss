@@ -11,7 +11,7 @@
 .pointer { z-index: 30; }
 
 .shell { width: 100%; max-width: 64rem; padding: 0 0 72px; }
-.eyebrow { font-family: var(--font-code); font-size: 10px; letter-spacing: .18em; line-height: 1.6; color: var(--neutral-on-background-weak); }
+.eyebrow { font-family: var(--font-body); font-size: 12px; letter-spacing: .12em; line-height: 1.6; color: var(--muted); }
 .hero { padding: 48px 0 40px; }
 .heroBadge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border: 1px solid var(--neutral-alpha-weak); border-radius: 99px; background: var(--surface-background); font-size: 12px; color: var(--neutral-on-background-medium); }
 .statusDot { width: 5px; height: 5px; background: var(--brand-on-background-weak); border-radius: 50%; }
@@ -68,8 +68,8 @@ a.journalLink:hover, a.projectLink:hover { color: var(--neutral-on-background-st
 .projectLink:hover .pixelFlower { transform: rotate(90deg); }
 
 .writingPage { width: 100%; max-width: 44rem; padding: 82px 0 96px; }
-.pageTitle { font-size: clamp(42px, 5vw, 60px); font-weight: 450; letter-spacing: -.055em; line-height: 1.1; }
-.pageSubtitle { color: var(--neutral-on-background-weak); font-size: 14px; line-height: 1.9; margin-top: 18px; }
+.pageTitle { font-family:var(--font-editorial);font-size: clamp(36px, 4.5vw, 52px); font-weight: 400; letter-spacing: .015em; line-height: 1.45; }
+.pageSubtitle { color: var(--muted); font-size: 16px; line-height: 1.95; margin-top: 20px; }
 .filters { margin-top: 48px; margin-bottom: 24px; border-bottom: 1px solid var(--neutral-alpha-weak); }
 .filter { background: transparent; border: 0; border-bottom: 1px solid transparent; margin-bottom: -1px; padding: 0 0 14px; font-family: inherit; font-size: 14px; color: var(--neutral-on-background-weak); cursor: pointer; display: flex; gap: 7px; align-items: baseline; }
 .filter span { font-family: var(--font-code); font-size: 9px; opacity: .6; }
@@ -79,20 +79,20 @@ a.journalLink:hover, a.projectLink:hover { color: var(--neutral-on-background-st
 .yearGroup { padding-top: 45px; }
 .year { position: absolute; top: -10px; left: -62px; color: transparent; -webkit-text-stroke: 1px var(--neutral-alpha-medium); font-size: 112px; line-height: 1; font-family: var(--font-body); font-weight: 650; letter-spacing: -.07em; z-index: -1; user-select: none; }
 .journalLink { width: 100%; display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 17px 0; color: var(--neutral-on-background-medium); text-decoration: none; }
-.journalTitle { font-size: 15px; line-height: 1.75; letter-spacing: .015em; }
+.journalTitle { font-size: 17px; line-height: 1.85; letter-spacing: .015em; }
 .journalLink:hover { color: var(--neutral-on-background-strong); }
 .rowArrow { display: inline-block; opacity: 0; transform: translate(-4px, 3px); margin-left: 9px; font-family: var(--font-body); transition: opacity .2s, transform .2s; }
 .journalLink:hover .rowArrow, .journalLink:focus-visible .rowArrow { opacity: .7; transform: translate(0, 0); }
-.journalMeta { flex-shrink: 0; color: var(--neutral-on-background-weak); font-size: 10px; font-family: var(--font-code); white-space: nowrap; opacity: .75; }
+.journalMeta { flex-shrink: 0; color: var(--muted); font-size: 12px; font-family: var(--font-body); white-space: nowrap; }
 .readTime { min-width: 35px; text-align: right; }
 .endnote { font-size: 12px; color: var(--neutral-on-background-weak); margin-top: 64px; opacity: .7; }
 .endnote span { margin-left: 10px; }
 
-.galleryPage { width: 100%; max-width: 70rem; padding: 64px 0 72px; }
-.galleryHeader { padding: 0 0 52px; }
-.galleryTitle { font-family: var(--font-editorial), "Songti SC", Georgia, serif; font-size: clamp(64px, 8vw, 110px); font-weight: 400; line-height: 1.03; letter-spacing: -.055em; margin: 24px 0 30px; }
-.galleryTitle em { margin-left: .7em; font-weight: 400; }
-.galleryIntro { font-size: 12px; line-height: 1.9; letter-spacing: .05em; color: var(--neutral-on-background-weak); }
+.galleryPage { width: 100%; max-width: 70rem; padding: 52px 0 88px; }
+.galleryHeader { padding: 0 0 48px; }
+.galleryTitle { font-family: var(--font-editorial), serif; font-size: clamp(40px, 5.5vw, 68px); font-weight: 400; line-height: 1.4; letter-spacing: .025em; margin: 22px 0 26px; }
+.galleryTitle em { margin-left: .7em; font-weight: 400; font-style:normal; color:var(--accent); }
+.galleryIntro { font-size: 15px; line-height: 1.95; letter-spacing: .025em; color: var(--muted); }
 .gallerySmallTitle { font-family: var(--font-editorial), Georgia, serif; font-size: 18px; font-style: italic; font-weight: 400; }
 .photoGrid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 48px; row-gap: 68px; align-items: start; }
 .photoFigure { margin: 0; min-width: 0; }
@@ -118,9 +118,9 @@ a.journalLink:hover, a.projectLink:hover { color: var(--neutral-on-background-st
 .lightboxControl span { font-size: 20px; line-height: 1; }
 
 .articlePage { max-width: 42rem; width: 100%; padding: 64px 0 80px; }
-.articleTitle { font-size: clamp(28px, 4vw, 42px); font-weight: 500; letter-spacing: -.04em; line-height: 1.45; margin-top: 32px; }
+.articleTitle { font-family:var(--font-editorial);font-size: clamp(28px, 4vw, 42px); font-weight: 400; letter-spacing: .015em; line-height: 1.6; margin-top: 32px; }
 .articleSummary { font-size: 17px; line-height: 1.9; color: var(--neutral-on-background-weak); margin: 22px 0; }
-.articleMetadata { font-size: 11px; color: var(--neutral-on-background-weak); gap: 16px; padding-bottom: 42px; border-bottom: 1px solid var(--neutral-alpha-weak); }
+.articleMetadata { font-size: 13px; color: var(--muted); gap: 16px; padding-bottom: 42px; border-bottom: 1px solid var(--line); }
 .articleBody { gap: 36px; padding: 42px 0; }
 .articleBody h2 { font-size: 22px; font-weight: 500; letter-spacing: -.02em; margin-bottom: 14px; }
 .articleBody p { font-size: 16px; line-height: 2.2; letter-spacing: .025em; color: var(--neutral-on-background-medium); }
@@ -155,21 +155,22 @@ a.journalLink:hover, a.projectLink:hover { color: var(--neutral-on-background-st
   .projectGrid { grid-template-columns: 1fr; gap: 38px; }
   .projectVisual { height: 250px; }
   .journalLink { gap: 10px; padding: 15px 0; }
-  .journalTitle { font-size: 13px; }
-  .journalMeta { gap: 8px!important; font-size: 9px; }
+  .journalTitle { font-size: 16px; }
+  .journalMeta { gap: 8px!important; font-size: 12px; }
+  .journalLink { flex-wrap:wrap;gap:6px; }
   .readTime { display: none; }
   .rowArrow { display: none; }
   .writingPage { padding: 52px 4px 64px; }
-  .pageTitle { font-size: 44px; }
-  .pageSubtitle { font-size: 12px; }
+  .pageTitle { font-size: 36px; }
+  .pageSubtitle { font-size: 15px; }
   .filters { margin-top: 36px; }
   .archive { gap: 34px; margin-top: 24px; }
   .year { left: -5px; font-size: 94px; }
   .galleryPage { padding: 40px 0 50px; }
   .galleryHeader { padding-bottom: 32px; }
-  .galleryTitle { font-size: clamp(54px, 13vw, 78px); margin: 20px 0 26px; }
+  .galleryTitle { font-size: clamp(36px, 9vw, 48px); margin: 20px 0 26px; }
   .galleryTitle em { margin-left: .4em; }
-  .galleryIntro { font-size: 10px; }
+  .galleryIntro { font-size: 15px; }
   .galleryMicro { display: none; }
   .galleryIntroRow { flex-direction: column; align-items: flex-start; gap: 18px; }
   .gallerySmallTitle { font-size: 15px; }
